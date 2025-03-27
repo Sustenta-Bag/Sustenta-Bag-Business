@@ -1,122 +1,195 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'package:sustenta_bag_business/ui/screens/DashboardPage.dart';
+import 'package:sustenta_bag_business/ui/screens/LoginPage.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print("Erro ao carregar o arquivo .env: $e");
+  }
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class DatabaseHelper {
+  static Database? _database;
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+  static Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
+  }
+
+  static Future<Database> _initDatabase() async {
+    String path = join(await getDatabasesPath(), 'auth.db');
+    return openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) {
+        return db.execute(
+          "CREATE TABLE auth (id INTEGER PRIMARY KEY, token TEXT)",
+        );
+      },
     );
+  }
+
+  static Future<void> saveToken(String token) async {
+    final db = await database;
+    await db.insert(
+      'auth',
+      {'id': 1, 'token': token},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<String?> getToken() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('auth');
+    if (maps.isNotEmpty) {
+      return maps.first['token'] as String?;
+    }
+    return null;
+  }
+
+  static Future<void> deleteToken() async {
+    final db = await database;
+    await db.delete('auth');
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class MyApp extends StatefulWidget {
+  MyApp({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyApp> createState() => _MyAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyAppState extends State<MyApp> {
+  bool isAuthenticated = false;
 
-  void _incrementCounter() {
+  Future<void> checkAuthentication() async {
+    final String? token = await DatabaseHelper.getToken();
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      isAuthenticated = token != null;
     });
   }
 
   @override
+  void initState() {
+    super.initState();
+    checkAuthentication();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    return MaterialApp(
+      title: 'Empresarial',
+      initialRoute: isAuthenticated ? '/dashboard' : '/login',
+      onGenerateRoute: (settings) {
+        //if ((settings.name == '/dashboard' || settings.name == '/agenda' || settings.name == '/produtores') && !isAuthenticated) {
+          //return createRoute(const LoginPage());
+       // }
+
+        switch (settings.name) {
+          case '/login':
+            return createRoute(const LoginPage());
+          //case '/agenda':
+          //  return createRoute(const AuthenticatedLayout(selectedIndex: 1));
+         // case '/produtores':
+          //  return createRoute(const AuthenticatedLayout(selectedIndex: 2));
+          //case '/dashboard':
+          //  return createRoute(const AuthenticatedLayout(selectedIndex: 0));
+          case '/dashboard':
+          return createRoute(const DashboardPage());
+          default:
+            return createRoute(const LoginPage());
+        }
+      },
+    );
+  }
+}
+
+Route createRoute(Widget page) {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      const curve = Curves.easeInOut;
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      var offsetAnimation = animation.drive(tween);
+      return SlideTransition(position: offsetAnimation, child: child);
+    },
+  );
+}
+
+class AuthenticatedLayout extends StatefulWidget {
+  const AuthenticatedLayout({super.key, required this.selectedIndex});
+  final int selectedIndex;
+
+  @override
+  _AuthenticatedLayoutState createState() => _AuthenticatedLayoutState();
+}
+
+class _AuthenticatedLayoutState extends State<AuthenticatedLayout> {
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.selectedIndex;
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _getPage(int index) {
+    switch (index) {
+      case 0:
+        return const DashboardPage();
+      default:
+        return const DashboardPage();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        backgroundColor: const Color(0xFF0D2434),
+        title: const Text('SUSTENTA BAG BUSINESS', style: TextStyle(color: Colors.white, fontSize: 24.0)),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await DatabaseHelper.deleteToken();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+      body: _getPage(_selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF0D2434),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white54,
+        currentIndex: _selectedIndex,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.ac_unit_sharp), label: 'algo 1'),
+          BottomNavigationBarItem(icon: Icon(Icons.accessible_sharp), label: 'algo 2'),
+        ],
+        onTap: _onItemTapped,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
