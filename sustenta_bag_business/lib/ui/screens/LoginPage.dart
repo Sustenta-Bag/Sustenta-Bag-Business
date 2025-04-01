@@ -14,15 +14,46 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     String email = _loginController.text;
     String senha = _senhaController.text;
-    if (email.isNotEmpty && senha.isNotEmpty) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else {
+
+    if (email.isEmpty || senha.isEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      
       if (mounted) {
         _showErrorDialog('Preencha os campos de login e senha.');
+      }
+      return;
+    }
+
+    try {
+      // Aqui você adicionaria sua lógica de autenticação real
+      // Por enquanto, vamos simular um login bem-sucedido
+      
+      // Simulando um atraso de rede
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog('Erro ao fazer login: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -72,13 +103,16 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 30),
                   CustomTextField(controller: _loginController, label: 'Login'),
                   const SizedBox(height: 20),
-                  CustomTextField(controller: _senhaController, label: 'Senha', obscureText: true),
-                  const SizedBox(height: 20),
-                  CustomButton(
-                    onPressed: _login,
-                    text: 'Entrar',  
+                  CustomTextField(
+                    controller: _senhaController,
+                    label: 'Senha',
+                    obscureText: true,
                   ),
-                  const SizedBox(height: 20), 
+                  const SizedBox(height: 20),
+                  _isLoading 
+                      ? const CircularProgressIndicator(color: Color(0xFF225C4B))
+                      : CustomButton(onPressed: _login, text: 'Entrar'),
+                  const SizedBox(height: 20),
                   RichText(
                     text: TextSpan(
                       text: 'Não possui uma conta? ',
@@ -87,21 +121,24 @@ class _LoginPageState extends State<LoginPage> {
                         TextSpan(
                           text: 'Inscreva-se',
                           style: const TextStyle(
-                            color: Colors.blue, 
-                            decoration: TextDecoration.underline, 
+                            color: Color(0xFF225C4B),
+                            decoration: TextDecoration.underline,
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CreateAccountPage(),
-                                ),
-                              );
-                            },
+                          recognizer:
+                              TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              const CreateAccountPage(),
+                                    ),
+                                  );
+                                },
                         ),
                       ],
-                    ),  
+                    ),
                   ),
                 ],
               ),

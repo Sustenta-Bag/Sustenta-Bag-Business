@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:sustenta_bag_business/ui/screens/DashboardPage.dart';
 import 'package:sustenta_bag_business/ui/screens/LoginPage.dart';
+import 'package:sustenta_bag_business/ui/screens/WelcomePage%20.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +13,7 @@ void main() async {
   } catch (e) {
     print("Erro ao carregar o arquivo .env: $e");
   }
-  runApp(MyApp());
+  runApp(const MyApp());  // Adicionado const aqui
 }
 
 class DatabaseHelper {
@@ -62,7 +63,7 @@ class DatabaseHelper {
 }
 
 class MyApp extends StatefulWidget {
-  MyApp({super.key});
+  const MyApp({super.key});  // Mantida como const
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -70,11 +71,13 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool isAuthenticated = false;
+  bool isLoading = true;
 
   Future<void> checkAuthentication() async {
     final String? token = await DatabaseHelper.getToken();
     setState(() {
       isAuthenticated = token != null;
+      isLoading = false;
     });
   }
 
@@ -88,26 +91,12 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Empresarial',
-      initialRoute: isAuthenticated ? '/dashboard' : '/login',
-      onGenerateRoute: (settings) {
-        //if ((settings.name == '/dashboard' || settings.name == '/agenda' || settings.name == '/produtores') && !isAuthenticated) {
-          //return createRoute(const LoginPage());
-       // }
-
-        switch (settings.name) {
-          case '/login':
-            return createRoute(const LoginPage());
-          //case '/agenda':
-          //  return createRoute(const AuthenticatedLayout(selectedIndex: 1));
-         // case '/produtores':
-          //  return createRoute(const AuthenticatedLayout(selectedIndex: 2));
-          //case '/dashboard':
-          //  return createRoute(const AuthenticatedLayout(selectedIndex: 0));
-          case '/dashboard':
-          return createRoute(const DashboardPage());
-          default:
-            return createRoute(const LoginPage());
-        }
+      debugShowCheckedModeBanner: false,  // Remove a faixa de debug
+      initialRoute: '/welcome', // Alterado para iniciar na Welcome Page
+      routes: {
+        '/welcome': (context) => const WelcomePage(),
+        '/login': (context) => const LoginPage(),
+        '/dashboard': (context) => const DashboardPage(),
       },
     );
   }
