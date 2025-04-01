@@ -20,14 +20,12 @@ class WelcomePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 300, 
-                height: 300, 
+                width: 300,
+                height: 300,
                 decoration: const BoxDecoration(),
                 child: Image.asset(
                   'assets/images/welcomeImage.png',
-                  fit:
-                      BoxFit
-                          .contain, 
+                  fit: BoxFit.contain,
                 ),
               ),
               const SizedBox(height: 40),

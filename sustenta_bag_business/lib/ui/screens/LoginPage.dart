@@ -36,10 +36,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      // Aqui você adicionaria sua lógica de autenticação real
-      // Por enquanto, vamos simular um login bem-sucedido
-      
-      // Simulando um atraso de rede
+     
       await Future.delayed(const Duration(milliseconds: 500));
       
       if (mounted) {

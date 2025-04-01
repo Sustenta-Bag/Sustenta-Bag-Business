@@ -73,15 +73,26 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   SizedBox(height: 20),
                   CustomTextField(controller: _emailController, label: 'Email'),
                   SizedBox(height: 20),
-                  CustomTextField(controller: _senhaController, label: 'Senha', obscureText: true),
+                  CustomTextField(
+                    controller: _senhaController,
+                    label: 'Senha',
+                    obscureText: true,
+                  ),
                   SizedBox(height: 20),
-                  CustomTextField(controller: _confirmSenhaController, label: 'Confirmar Senha', obscureText: true),
+                  CustomTextField(
+                    controller: _confirmSenhaController,
+                    label: 'Confirmar Senha',
+                    obscureText: true,
+                  ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _criarConta,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade700,
-                      padding: EdgeInsets.symmetric(horizontal: 70, vertical: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 70,
+                        vertical: 12,
+                      ),
                     ),
                     child: const Text(
                       'CRIAR CONTA',
