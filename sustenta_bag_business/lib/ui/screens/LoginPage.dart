@@ -13,7 +13,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _loginController = TextEditingController();
-  final TextEditingController _senhaController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> _login() async {
@@ -22,13 +22,13 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     String email = _loginController.text;
-    String senha = _senhaController.text;
+    String password = _passwordController.text;
 
-    if (email.isEmpty || senha.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         _showErrorDialog('Preencha os campos de login e senha.');
       }
@@ -36,9 +36,8 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-     
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/dashboard');
       }
@@ -101,13 +100,15 @@ class _LoginPageState extends State<LoginPage> {
                   CustomTextField(controller: _loginController, label: 'Login'),
                   const SizedBox(height: 20),
                   CustomTextField(
-                    controller: _senhaController,
+                    controller: _passwordController,
                     label: 'Senha',
                     obscureText: true,
                   ),
                   const SizedBox(height: 20),
-                  _isLoading 
-                      ? const CircularProgressIndicator(color: Color(0xFF225C4B))
+                  _isLoading
+                      ? const CircularProgressIndicator(
+                        color: Color(0xFF225C4B),
+                      )
                       : CustomButton(onPressed: _login, text: 'Entrar'),
                   const SizedBox(height: 20),
                   RichText(

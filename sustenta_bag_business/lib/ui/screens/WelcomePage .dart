@@ -29,8 +29,6 @@ class WelcomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // Título
               const Text(
                 'SustentaBag',
                 style: TextStyle(
@@ -41,8 +39,6 @@ class WelcomePage extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-
-              // Subtítulo
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 40),
                 child: Text(

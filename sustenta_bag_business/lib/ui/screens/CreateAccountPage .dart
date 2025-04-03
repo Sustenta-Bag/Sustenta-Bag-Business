@@ -11,16 +11,16 @@ class CreateAccountPage extends StatefulWidget {
 
 class _CreateAccountPageState extends State<CreateAccountPage> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _senhaController = TextEditingController();
-  final TextEditingController _confirmSenhaController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
-  Future<void> _criarConta() async {
+  Future<void> _createAccount() async {
     String email = _emailController.text;
-    String senha = _senhaController.text;
-    String confirmSenha = _confirmSenhaController.text;
+    String password = _passwordController.text;
+    String confirmPassword = _confirmPasswordController.text;
 
-    if (email.isNotEmpty && senha.isNotEmpty && confirmSenha.isNotEmpty) {
-      if (senha == confirmSenha) {
+    if (email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty) {
+      if (password == confirmPassword) {
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
         _showErrorDialog('As senhas não coincidem.');
@@ -74,19 +74,19 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   CustomTextField(controller: _emailController, label: 'Email'),
                   SizedBox(height: 20),
                   CustomTextField(
-                    controller: _senhaController,
+                    controller: _passwordController,
                     label: 'Senha',
                     obscureText: true,
                   ),
                   SizedBox(height: 20),
                   CustomTextField(
-                    controller: _confirmSenhaController,
+                    controller: _confirmPasswordController,
                     label: 'Confirmar Senha',
                     obscureText: true,
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: _criarConta,
+                    onPressed: _createAccount,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade700,
                       padding: EdgeInsets.symmetric(
